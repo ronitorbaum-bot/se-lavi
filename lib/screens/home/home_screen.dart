@@ -158,78 +158,73 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('היום שלי')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // לוגו
-            Image.asset(
-              'assets/images/logo.png',
-              width: 170,
-              height: 170,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'סה-לביא',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: AppColors.oliveGreen,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // לוגו
+              Image.asset(
+                'assets/images/logo.png',
+                width: 200,
+                height: 200,
+                fit: BoxFit.contain,
+              ),
+
+              const SizedBox(height: 16),
+
+              // אזור תזכורות להיום
+              _buildRemindersSection(context),
+
+              const SizedBox(height: 20),
+
+              // שורה: הוצאה + הכנסה
+              Row(
+                children: [
+                  Expanded(
+                    child: LargeActionButton(
+                      label: 'רישום הוצאה',
+                      icon: Icons.arrow_upward,
+                      backgroundColor: AppColors.terracotta,
+                      onPressed: () => onTabChange(1),
+                    ),
                   ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // אזור תזכורות להיום
-            _buildRemindersSection(context),
-
-            const SizedBox(height: 28),
-
-            // שורה: הוצאה + הכנסה
-            Row(
-              children: [
-                Expanded(
-                  child: LargeActionButton(
-                    label: 'רישום הוצאה',
-                    icon: Icons.arrow_upward,
-                    backgroundColor: AppColors.terracotta,
-                    onPressed: () => onTabChange(1),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: LargeActionButton(
+                      label: 'רישום הכנסה',
+                      icon: Icons.arrow_downward,
+                      backgroundColor: AppColors.oliveGreen,
+                      onPressed: () => onTabChange(1),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: LargeActionButton(
-                    label: 'רישום הכנסה',
-                    icon: Icons.arrow_downward,
-                    backgroundColor: AppColors.oliveGreen,
-                    onPressed: () => onTabChange(1),
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
-            const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
-            // הוספת תזכורת
-            LargeActionButton(
-              label: 'הוספת תזכורת',
-              icon: Icons.notifications_outlined,
-              backgroundColor: AppColors.sunrise,
-              onPressed: () => onTabChange(2),
-            ),
+              // הוספת תזכורת
+              LargeActionButton(
+                label: 'הוספת תזכורת',
+                icon: Icons.notifications_outlined,
+                backgroundColor: AppColors.sunrise,
+                onPressed: () => onTabChange(2),
+              ),
 
-            const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
-            // צריכה עזרה
-            LargeActionButton(
-              label: 'צריכה עזרה',
-              icon: Icons.favorite,
-              backgroundColor: AppColors.terracotta,
-              onPressed: () => _showHelpDialog(context),
-            ),
+              // צריכה עזרה
+              LargeActionButton(
+                label: 'צריכה עזרה',
+                icon: Icons.favorite,
+                backgroundColor: AppColors.terracotta,
+                onPressed: () => _showHelpDialog(context),
+              ),
 
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
