@@ -669,67 +669,97 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     );
   }
 
+  void _openCategoryDetail(String category) {
+    final records = _records
+        .where((r) => r.category == category)
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _CategoryDetailSheet(
+        category: category,
+        records: records,
+        formatDate: _formatDate,
+      ),
+    );
+  }
+
   Widget _buildCategorySummaryCard(_CategorySummary s) {
     final hasRecords = s.count > 0;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: hasRecords
-              ? AppColors.oliveGreen
-              : Colors.grey.shade200,
-          width: hasRecords ? 1.5 : 1,
+    return GestureDetector(
+      onTap: () => _openCategoryDetail(s.category),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: hasRecords
+                ? AppColors.oliveGreen
+                : Colors.grey.shade200,
+            width: hasRecords ? 1.5 : 1,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.category,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: hasRecords
+                          ? AppColors.textDark
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+                  Text(
+                    s.count == 0 ? 'אין רישומים — לחצי לפירוט' : '${s.count} רישומים — לחצי לפירוט',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: hasRecords
+                          ? AppColors.textMedium
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+                  if (s.category == 'כביסה' && s.totalWeight > 0)
+                    Text(
+                      'סה"כ משקל: ${s.totalWeight.toStringAsFixed(1)} ק"ג',
+                      style: const TextStyle(
+                          fontSize: 14, color: AppColors.textMedium),
+                    ),
+                ],
+              ),
+            ),
+            Row(
               children: [
                 Text(
-                  s.category,
+                  '₪${s.totalAmount.toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: hasRecords
-                        ? AppColors.textDark
-                        : Colors.grey.shade400,
+                        ? AppColors.terracotta
+                        : Colors.grey.shade300,
                   ),
                 ),
-                Text(
-                  s.count == 0 ? 'אין רישומים' : '${s.count} רישומים',
-                  style: TextStyle(
-                    fontSize: 14,
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_left,
                     color: hasRecords
-                        ? AppColors.textMedium
-                        : Colors.grey.shade400,
-                  ),
-                ),
-                if (s.category == 'כביסה' && s.totalWeight > 0)
-                  Text(
-                    'סה"כ משקל: ${s.totalWeight.toStringAsFixed(1)} ק"ג',
-                    style: const TextStyle(
-                        fontSize: 14, color: AppColors.textMedium),
-                  ),
+                        ? AppColors.oliveGreen
+                        : Colors.grey.shade300),
               ],
             ),
-          ),
-          Text(
-            '₪${s.totalAmount.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: hasRecords
-                  ? AppColors.terracotta
-                  : Colors.grey.shade300,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -762,6 +792,152 @@ class _TransactionsScreenState extends State<TransactionsScreen>
           _buildRegistrationTab(),
           _buildSummaryTab(),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Bottom Sheet פירוט קטגוריה ─────────────────────────
+
+class _CategoryDetailSheet extends StatelessWidget {
+  final String category;
+  final List<MoneyRecord> records;
+  final String Function(DateTime) formatDate;
+
+  const _CategoryDetailSheet({
+    required this.category,
+    required this.records,
+    required this.formatDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      decoration: const BoxDecoration(
+        color: AppColors.cream,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'פירוט: $category',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Flexible(
+            child: records.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'אין עדיין רישומים בקטגוריה הזו',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(color: AppColors.textMedium),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: records.length,
+                    itemBuilder: (_, i) => _buildDetailTile(context, records[i]),
+                  ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(double.infinity, 52),
+            ),
+            child: const Text(
+              'סגירה',
+              style: TextStyle(fontSize: 18, color: AppColors.textMedium),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailTile(BuildContext context, MoneyRecord r) {
+    final isIncome = r.type == 'income';
+    final accentColor =
+        isIncome ? AppColors.oliveGreen : AppColors.terracotta;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: accentColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    r.typeLabel,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  formatDate(r.createdAt),
+                  style: TextStyle(
+                      fontSize: 13, color: Colors.grey.shade500),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (r.summaryText.isNotEmpty)
+              Text(
+                r.summaryText,
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: accentColor),
+              ),
+            if (r.destination != null)
+              Text('יעד: ${r.destination!}',
+                  style: const TextStyle(
+                      fontSize: 16, color: AppColors.textDark)),
+            if (r.extraText != null)
+              Text(r.extraText!,
+                  style: const TextStyle(
+                      fontSize: 14, color: AppColors.textMedium)),
+            if (r.note != null)
+              Text(r.note!,
+                  style: const TextStyle(
+                      fontSize: 15, color: AppColors.textMedium)),
+          ],
+        ),
       ),
     );
   }

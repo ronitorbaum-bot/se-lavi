@@ -51,8 +51,8 @@ class HomeScreen extends StatelessWidget {
             // לוגו וכותרת
             Image.asset(
               'assets/images/logo.png',
-              width: 120,
-              height: 120,
+              width: 170,
+              height: 170,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 12),
