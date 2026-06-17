@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../models/reminder_record.dart';
 import '../../widgets/large_action_button.dart';
 
 class HomeScreen extends StatelessWidget {
   final void Function(int) onTabChange;
+  final List<ReminderRecord> reminders;
 
-  const HomeScreen({super.key, required this.onTabChange});
+  const HomeScreen({
+    super.key,
+    required this.onTabChange,
+    required this.reminders,
+  });
 
   void _showHelpDialog(BuildContext context) {
     showDialog(
@@ -40,110 +46,146 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildRemindersSection(BuildContext context) {
+    final visible = reminders.take(3).toList();
+    final hasMore = reminders.length > 3;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'תזכורות להיום',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.textDark,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 10),
+        if (reminders.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline,
+                    size: 32, color: AppColors.oliveGreen),
+                const SizedBox(width: 12),
+                Text(
+                  'אין תזכורות להיום',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textMedium,
+                      ),
+                ),
+              ],
+            ),
+          )
+        else ...[
+          ...visible.map((r) => _buildReminderChip(context, r)),
+          if (hasMore)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'יש עוד תזכורות במסך תזכורות',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textMedium,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildReminderChip(BuildContext context, ReminderRecord r) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: r.isDone ? Colors.grey.shade100 : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: r.isDone ? Colors.grey.shade200 : AppColors.sunrise,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            r.isDone ? Icons.check_circle : Icons.notifications_outlined,
+            color: r.isDone ? Colors.grey.shade400 : AppColors.sunrise,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  r.title,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: r.isDone
+                        ? Colors.grey.shade400
+                        : AppColors.textDark,
+                    decoration:
+                        r.isDone ? TextDecoration.lineThrough : null,
+                  ),
+                ),
+                if (r.time != null || r.repeat.isNotEmpty)
+                  Text(
+                    [if (r.time != null) r.time!, r.repeatLabel]
+                        .join('  •  '),
+                    style: const TextStyle(
+                        fontSize: 14, color: AppColors.textMedium),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('היום שלי')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // לוגו וכותרת
+            // לוגו
             Image.asset(
               'assets/images/logo.png',
               width: 170,
               height: 170,
               fit: BoxFit.contain,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               'סה-לביא',
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     color: AppColors.oliveGreen,
                   ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'מה תרצי לרשום היום?',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textMedium,
-                  ),
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            // כרטיס ברכה / הסבר קצר
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEEF3E4),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.oliveGreen, width: 1.5),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'ברוכה הבאה לסה-לביא',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.oliveGreen,
-                          fontWeight: FontWeight.bold,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'האפליקציה עוזרת לזכור דברים ולרשום הוצאות בקלות.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textMedium,
-                          height: 1.5,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // כרטיס "הדבר הבא"
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.oliveGreen, width: 2),
-              ),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    size: 40,
-                    color: AppColors.oliveGreen,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'אין כרגע תזכורות להיום',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.oliveGreen,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'כאן יופיע הדבר הבא שצריך לעשות',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+            // אזור תזכורות להיום
+            _buildRemindersSection(context),
 
             const SizedBox(height: 28),
 
-            // שורה 1: הוצאה + הכנסה
+            // שורה: הוצאה + הכנסה
             Row(
               children: [
                 Expanded(
@@ -168,32 +210,17 @@ class HomeScreen extends StatelessWidget {
 
             const SizedBox(height: 14),
 
-            // שורה 2: תזכורת + עזרה
-            Row(
-              children: [
-                Expanded(
-                  child: LargeActionButton(
-                    label: 'הוספת תזכורת',
-                    icon: Icons.notifications_outlined,
-                    backgroundColor: AppColors.sunrise,
-                    onPressed: () => onTabChange(2),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: LargeActionButton(
-                    label: 'עזרה / יצירת קשר',
-                    icon: Icons.people_outline,
-                    backgroundColor: AppColors.oliveLight,
-                    onPressed: () => onTabChange(3),
-                  ),
-                ),
-              ],
+            // הוספת תזכורת
+            LargeActionButton(
+              label: 'הוספת תזכורת',
+              icon: Icons.notifications_outlined,
+              backgroundColor: AppColors.sunrise,
+              onPressed: () => onTabChange(2),
             ),
 
             const SizedBox(height: 14),
 
-            // כפתור "צריכה עזרה" — רוחב מלא
+            // צריכה עזרה
             LargeActionButton(
               label: 'צריכה עזרה',
               icon: Icons.favorite_outline,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme.dart';
+import 'models/reminder_record.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/transactions/transactions_screen.dart';
 import 'screens/reminders/reminders_screen.dart';
@@ -46,31 +47,44 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
-  late final List<Widget> _screens;
+  final List<ReminderRecord> _reminders = [];
 
-  @override
-  void initState() {
-    super.initState();
-    // נוצרים פעם אחת בלבד — IndexedStack שומר את ה-State של כל מסך
-    _screens = [
-      HomeScreen(onTabChange: _onTabChange),
-      const TransactionsScreen(),
-      const RemindersScreen(),
-      const ContactsScreen(),
-    ];
-  }
+  void _onTabChange(int index) => setState(() => _currentIndex = index);
 
-  void _onTabChange(int index) {
-    setState(() => _currentIndex = index);
+  void _addReminder(ReminderRecord r) =>
+      setState(() => _reminders.insert(0, r));
+
+  void _deleteReminder(String id) =>
+      setState(() => _reminders.removeWhere((r) => r.id == id));
+
+  void _toggleDone(String id) {
+    setState(() {
+      final idx = _reminders.indexWhere((r) => r.id == id);
+      if (idx != -1) _reminders[idx].isDone = !_reminders[idx].isDone;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final screens = [
+      HomeScreen(
+        onTabChange: _onTabChange,
+        reminders: _reminders,
+      ),
+      const TransactionsScreen(),
+      RemindersScreen(
+        reminders: _reminders,
+        onAdd: _addReminder,
+        onDelete: _deleteReminder,
+        onToggleDone: _toggleDone,
+      ),
+      const ContactsScreen(),
+    ];
+
     return Scaffold(
-      // IndexedStack שומר את כל המסכים בזיכרון — לא מאבדים State במעבר בין טאבים
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -94,7 +108,7 @@ class _MainShellState extends State<MainShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.people_outline),
             activeIcon: Icon(Icons.people),
-            label: 'עזרה',
+            label: 'אנשי קשר',
           ),
         ],
       ),
