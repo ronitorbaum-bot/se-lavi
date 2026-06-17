@@ -172,34 +172,58 @@ class HomeScreen extends StatelessWidget {
                 fit: BoxFit.contain,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               // אזור תזכורות להיום
               _buildRemindersSection(context),
 
               const SizedBox(height: 20),
 
-              // שורה: הוצאה + הכנסה
-              Row(
-                children: [
-                  Expanded(
-                    child: LargeActionButton(
-                      label: 'רישום הוצאה',
-                      icon: Icons.arrow_upward,
-                      backgroundColor: AppColors.terracotta,
-                      onPressed: () => onTabChange(1),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: LargeActionButton(
-                      label: 'רישום הכנסה',
-                      icon: Icons.arrow_downward,
-                      backgroundColor: AppColors.oliveGreen,
-                      onPressed: () => onTabChange(1),
-                    ),
-                  ),
-                ],
+              // שורה: הוצאה + הכנסה — שניים בשורה במסך רחב, אחד מתחת לשני בנייד
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 480;
+                  if (isNarrow) {
+                    return Column(
+                      children: [
+                        LargeActionButton(
+                          label: 'רישום הוצאה',
+                          icon: Icons.arrow_upward,
+                          backgroundColor: AppColors.terracotta,
+                          onPressed: () => onTabChange(1),
+                        ),
+                        const SizedBox(height: 12),
+                        LargeActionButton(
+                          label: 'רישום הכנסה',
+                          icon: Icons.arrow_downward,
+                          backgroundColor: AppColors.oliveGreen,
+                          onPressed: () => onTabChange(1),
+                        ),
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: LargeActionButton(
+                          label: 'רישום הוצאה',
+                          icon: Icons.arrow_upward,
+                          backgroundColor: AppColors.terracotta,
+                          onPressed: () => onTabChange(1),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: LargeActionButton(
+                          label: 'רישום הכנסה',
+                          icon: Icons.arrow_downward,
+                          backgroundColor: AppColors.oliveGreen,
+                          onPressed: () => onTabChange(1),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 12),
