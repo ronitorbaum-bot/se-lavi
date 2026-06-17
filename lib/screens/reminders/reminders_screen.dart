@@ -17,6 +17,101 @@ class RemindersScreen extends StatelessWidget {
     required this.onToggleDone,
   });
 
+  // ─── דמו התראה ────────────────────────────────────────
+
+  void _showDemoNotification(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF3E4),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.notifications_active_outlined,
+                  size: 36,
+                  color: AppColors.oliveGreen,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'תזכורת',
+                style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textMedium,
+                    fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'לקחת תרופה',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'אחרי ארוחת בוקר',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 18,
+                    color: AppColors.textMedium,
+                    height: 1.4),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    textStyle: const TextStyle(
+                        fontSize: 19, fontWeight: FontWeight.bold),
+                  ),
+                  child: const Text('סיימתי'),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    side: const BorderSide(
+                        color: AppColors.oliveGreen, width: 1.5),
+                  ),
+                  child: const Text(
+                    'תזכירי לי אחר כך',
+                    style: TextStyle(
+                        fontSize: 17, color: AppColors.oliveGreen),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── הוספת תזכורת ────────────────────────────────────
+
   Future<void> _openAddSheet(BuildContext context) async {
     final result = await showModalBottomSheet<ReminderRecord>(
       context: context,
@@ -27,38 +122,20 @@ class RemindersScreen extends StatelessWidget {
 
     if (result != null && context.mounted) {
       onAdd(result);
-      _showSuccessDialog(context);
+      _showSuccessSnack(context);
     }
   }
 
-  void _showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'התזכורת נוספה',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'אפשר לראות אותה ברשימה.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18, height: 1.5),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(160, 56),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            child: const Text('הבנתי', style: TextStyle(fontSize: 20)),
-          ),
-          const SizedBox(height: 8),
-        ],
+  void _showSuccessSnack(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('התזכורת נוספה',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+        backgroundColor: AppColors.oliveGreen,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -67,17 +144,14 @@ class RemindersScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'למחוק תזכורת?',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'אי אפשר לשחזר אחרי המחיקה.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 17),
-        ),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20)),
+        title: const Text('למחוק תזכורת?',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        content: const Text('אי אפשר לשחזר אחרי המחיקה.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 17)),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           Row(
@@ -85,8 +159,8 @@ class RemindersScreen extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child:
-                    const Text('ביטול', style: TextStyle(fontSize: 18)),
+                child: const Text('ביטול',
+                    style: TextStyle(fontSize: 18)),
               ),
               const SizedBox(width: 16),
               ElevatedButton(
@@ -98,8 +172,8 @@ class RemindersScreen extends StatelessWidget {
                   backgroundColor: AppColors.terracotta,
                   foregroundColor: Colors.white,
                 ),
-                child:
-                    const Text('מחיקה', style: TextStyle(fontSize: 18)),
+                child: const Text('מחיקה',
+                    style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
@@ -109,11 +183,13 @@ class RemindersScreen extends StatelessWidget {
     );
   }
 
+  // ─── כרטיס תזכורת ────────────────────────────────────
+
   Widget _buildTile(BuildContext context, ReminderRecord r) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -152,8 +228,9 @@ class RemindersScreen extends StatelessWidget {
                       color: r.isDone
                           ? AppColors.textMedium
                           : AppColors.textDark,
-                      decoration:
-                          r.isDone ? TextDecoration.lineThrough : null,
+                      decoration: r.isDone
+                          ? TextDecoration.lineThrough
+                          : null,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -173,15 +250,26 @@ class RemindersScreen extends StatelessWidget {
                           size: 14, color: AppColors.textMedium),
                       const SizedBox(width: 4),
                       Flexible(
-                        child: Text(
-                          r.repeatLabel,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              color: AppColors.textMedium),
-                        ),
+                        child: Text(r.repeatLabel,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textMedium)),
                       ),
                     ],
                   ),
+                  if (r.note != null && r.note!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        r.note!,
+                        style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textMedium,
+                            fontStyle: FontStyle.italic),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -214,6 +302,8 @@ class RemindersScreen extends StatelessWidget {
     );
   }
 
+  // ─── build ────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,7 +319,30 @@ class RemindersScreen extends StatelessWidget {
               onPressed: () => _openAddSheet(context),
             ),
           ),
+          const SizedBox(height: 10),
+
+          // כפתור דמו התראה
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: OutlinedButton.icon(
+              onPressed: () => _showDemoNotification(context),
+              icon: const Icon(Icons.notifications_active_outlined,
+                  size: 18),
+              label: const Text('הצג תזכורת לדוגמה',
+                  style: TextStyle(fontSize: 15)),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 46),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                side: const BorderSide(
+                    color: AppColors.oliveGreen, width: 1.5),
+                foregroundColor: AppColors.oliveGreen,
+              ),
+            ),
+          ),
+
           const SizedBox(height: 16),
+
           Expanded(
             child: reminders.isEmpty
                 ? Center(
@@ -240,8 +353,7 @@ class RemindersScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border:
-                            Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -271,8 +383,7 @@ class RemindersScreen extends StatelessWidget {
                     ),
                   )
                 : ListView.builder(
-                    padding:
-                        const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: reminders.length,
                     itemBuilder: (ctx, i) =>
                         _buildTile(ctx, reminders[i]),
@@ -295,51 +406,89 @@ class _AddReminderSheet extends StatefulWidget {
 
 class _AddReminderSheetState extends State<_AddReminderSheet> {
   final _titleController = TextEditingController();
-  final _timeController = TextEditingController();
-  String _repeat = 'חד פעמי';
-  late List<String> _selectedDays;
+  final _noteController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedDays = List.from(kAllDays);
-  }
+  String _repeat = 'חד פעמי';
+  TimeOfDay? _selectedTime;
+
+  // יומי: ריק כברירת מחדל — המשתמשת בוחרת
+  final List<String> _dailyDays = [];
+
+  // שבועי: יום יחיד
+  String? _weeklyDay;
 
   @override
   void dispose() {
     _titleController.dispose();
-    _timeController.dispose();
+    _noteController.dispose();
     super.dispose();
+  }
+
+  String get _timeDisplay {
+    if (_selectedTime == null) return 'ללא שעה';
+    final h = _selectedTime!.hour.toString().padLeft(2, '0');
+    final m = _selectedTime!.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+      builder: (ctx, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: child!,
+      ),
+    );
+    if (picked != null) setState(() => _selectedTime = picked);
   }
 
   void _onSave() {
     if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'צריך לכתוב מה להזכיר',
-            style: TextStyle(fontSize: 17),
-          ),
-          backgroundColor: AppColors.terracotta,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showError('צריך לכתוב מה להזכיר');
       return;
     }
+    if (_repeat == 'יומי' && _dailyDays.isEmpty) {
+      _showError('צריך לבחור לפחות יום אחד');
+      return;
+    }
+    if (_repeat == 'שבועי' && _weeklyDay == null) {
+      _showError('צריך לבחור יום לתזכורת השבועית');
+      return;
+    }
+
+    final days = switch (_repeat) {
+      'יומי' => List<String>.from(_dailyDays),
+      'שבועי' => [_weeklyDay!],
+      _ => <String>[],
+    };
 
     Navigator.pop(
       context,
       ReminderRecord(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text.trim(),
-        time: _timeController.text.trim().isEmpty
-            ? null
-            : _timeController.text.trim(),
+        time: _selectedTime == null ? null : _timeDisplay,
         repeat: _repeat,
-        days: _repeat == 'יומי' ? List.from(_selectedDays) : [],
+        days: days,
+        note: _noteController.text.trim().isEmpty
+            ? null
+            : _noteController.text.trim(),
       ),
     );
   }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, style: const TextStyle(fontSize: 17)),
+      backgroundColor: AppColors.terracotta,
+      behavior: SnackBarBehavior.floating,
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ));
+  }
+
+  // ─── build ────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -348,11 +497,12 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
           bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9),
+            maxHeight: MediaQuery.of(context).size.height * 0.92),
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
         decoration: const BoxDecoration(
           color: AppColors.cream,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -372,7 +522,6 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
               ),
               const SizedBox(height: 20),
 
-              // כותרת
               Center(
                 child: Text(
                   'הוספת תזכורת',
@@ -380,49 +529,61 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                       .textTheme
                       .headlineMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 28),
 
               // מה להזכיר
-              _sectionLabel('מה להזכיר לך?', required: true),
+              _label('מה להזכיר לך?', required: true),
               const SizedBox(height: 10),
               TextField(
                 controller: _titleController,
                 style: const TextStyle(fontSize: 19),
                 autofocus: true,
-                decoration: _inputDecor(hint: 'למשל: לקחת תרופה, לצלצל לרופא...'),
+                decoration: _inputDecor(
+                    hint: 'למשל: לקחת תרופה, לצלצל לרופא...'),
               ),
               const SizedBox(height: 22),
 
               // שעה
-              _sectionLabel('שעה', required: false),
+              _label('שעה', required: false),
               const SizedBox(height: 10),
-              TextField(
-                controller: _timeController,
-                style: const TextStyle(fontSize: 19),
-                keyboardType: TextInputType.datetime,
-                decoration: _inputDecor(hint: '09:00'),
-              ),
+              _buildTimePicker(),
               const SizedBox(height: 22),
 
               // חזרה
-              _sectionLabel('חזרה', required: false),
+              _label('חזרה', required: false),
               const SizedBox(height: 12),
-              _buildRepeatSelector(),
+              _buildRepeatChips(),
 
-              // ימים — מוצג רק כשיומי
+              // ימים לפי סוג חזרה
               if (_repeat == 'יומי') ...[
                 const SizedBox(height: 22),
-                _sectionLabel('ימים', required: false),
+                _label('ימים', required: true),
                 const SizedBox(height: 10),
-                _buildDaysSelector(),
+                _buildMultiDaySelector(),
               ],
+              if (_repeat == 'שבועי') ...[
+                const SizedBox(height: 22),
+                _label('יום בשבוע', required: true),
+                const SizedBox(height: 10),
+                _buildSingleDaySelector(),
+              ],
+
+              // הערה
+              const SizedBox(height: 22),
+              _label('הערה', required: false),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _noteController,
+                style: const TextStyle(fontSize: 18),
+                maxLines: 2,
+                decoration:
+                    _inputDecor(hint: 'למשל: אחרי ארוחת בוקר'),
+              ),
 
               const SizedBox(height: 32),
 
-              // שמירה
               SizedBox(
                 width: double.infinity,
                 height: 64,
@@ -438,18 +599,14 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                 ),
               ),
               const SizedBox(height: 12),
-
-              // ביטול
               SizedBox(
                 width: double.infinity,
-                height: 54,
+                height: 52,
                 child: TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'ביטול',
-                    style: TextStyle(
-                        fontSize: 18, color: AppColors.textMedium),
-                  ),
+                  child: const Text('ביטול',
+                      style: TextStyle(
+                          fontSize: 18, color: AppColors.textMedium)),
                 ),
               ),
             ],
@@ -459,25 +616,83 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
     );
   }
 
-  Widget _buildRepeatSelector() {
+  // ─── בחירת שעה ───────────────────────────────────────
+
+  Widget _buildTimePicker() {
+    final picked = _selectedTime != null;
+    return GestureDetector(
+      onTap: _pickTime,
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: picked ? AppColors.oliveGreen : Colors.grey.shade300,
+            width: picked ? 2 : 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.access_time,
+              color:
+                  picked ? AppColors.oliveGreen : Colors.grey.shade400,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              _timeDisplay,
+              style: TextStyle(
+                fontSize: 19,
+                color: picked ? AppColors.textDark : AppColors.textMedium,
+                fontWeight:
+                    picked ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            const Spacer(),
+            if (picked)
+              GestureDetector(
+                onTap: () => setState(() => _selectedTime = null),
+                child: const Icon(Icons.close,
+                    size: 20, color: AppColors.textMedium),
+              )
+            else
+              const Text('לחצי לבחירה',
+                  style: TextStyle(
+                      fontSize: 14, color: AppColors.textMedium)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── בחירת חזרה ──────────────────────────────────────
+
+  Widget _buildRepeatChips() {
     const options = ['חד פעמי', 'יומי', 'שבועי', 'חודשי'];
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: options.map((opt) {
-        final selected = _repeat == opt;
+        final on = _repeat == opt;
         return GestureDetector(
-          onTap: () => setState(() => _repeat = opt),
+          onTap: () => setState(() {
+            _repeat = opt;
+            _dailyDays.clear();
+            _weeklyDay = null;
+          }),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: selected ? AppColors.oliveGreen : Colors.white,
+              color: on ? AppColors.oliveGreen : Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: selected
-                    ? AppColors.oliveGreen
-                    : Colors.grey.shade300,
+                color:
+                    on ? AppColors.oliveGreen : Colors.grey.shade300,
                 width: 1.5,
               ),
             ),
@@ -486,8 +701,8 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight:
-                    selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? Colors.white : AppColors.textDark,
+                    on ? FontWeight.bold : FontWeight.normal,
+                color: on ? Colors.white : AppColors.textDark,
               ),
             ),
           ),
@@ -496,22 +711,22 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
     );
   }
 
-  Widget _buildDaysSelector() {
+  // ─── ימים רב-בחירה (יומי) ────────────────────────────
+
+  Widget _buildMultiDaySelector() {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: kAllDays.map((day) {
-        final on = _selectedDays.contains(day);
+        final on = _dailyDays.contains(day);
         return GestureDetector(
-          onTap: () {
-            setState(() {
-              if (on) {
-                _selectedDays.remove(day);
-              } else {
-                _selectedDays.add(day);
-              }
-            });
-          },
+          onTap: () => setState(() {
+            if (on) {
+              _dailyDays.remove(day);
+            } else {
+              _dailyDays.add(day);
+            }
+          }),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 140),
             padding: const EdgeInsets.symmetric(
@@ -539,22 +754,58 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
     );
   }
 
-  Widget _sectionLabel(String text, {required bool required}) {
+  // ─── יום יחיד (שבועי) ────────────────────────────────
+
+  Widget _buildSingleDaySelector() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: kAllDays.map((day) {
+        final on = _weeklyDay == day;
+        return GestureDetector(
+          onTap: () => setState(() => _weeklyDay = day),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: on ? AppColors.oliveGreen : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color:
+                    on ? AppColors.oliveGreen : Colors.grey.shade300,
+                width: 1.5,
+              ),
+            ),
+            child: Text(
+              day,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight:
+                    on ? FontWeight.bold : FontWeight.normal,
+                color: on ? Colors.white : AppColors.textMedium,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ─── עזרים ────────────────────────────────────────────
+
+  Widget _label(String text, {required bool required}) {
     return Row(
       children: [
-        Text(
-          text,
-          style: const TextStyle(
-              fontSize: 18, fontWeight: FontWeight.w700),
-        ),
+        Text(text,
+            style: const TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w700)),
         if (required)
-          const Text(
-            ' *',
-            style: TextStyle(
-                color: AppColors.terracotta,
-                fontSize: 18,
-                fontWeight: FontWeight.bold),
-          ),
+          const Text(' *',
+              style: TextStyle(
+                  color: AppColors.terracotta,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -562,8 +813,8 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
   InputDecoration _inputDecor({String? hint}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle:
-          const TextStyle(fontSize: 16, color: AppColors.textMedium),
+      hintStyle: const TextStyle(
+          fontSize: 16, color: AppColors.textMedium),
       filled: true,
       fillColor: Colors.white,
       contentPadding:
