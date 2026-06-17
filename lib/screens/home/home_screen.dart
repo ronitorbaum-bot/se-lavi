@@ -223,8 +223,8 @@ class HomeScreen extends StatelessWidget {
             // צריכה עזרה
             LargeActionButton(
               label: 'צריכה עזרה',
-              icon: Icons.chat_bubble,
-              backgroundColor: const Color(0xFF25D366),
+              icon: Icons.favorite,
+              backgroundColor: AppColors.terracotta,
               onPressed: () => _showHelpDialog(context),
             ),
 

@@ -182,12 +182,13 @@ class ContactsScreen extends StatelessWidget {
             Row(
               children: [
                 const Icon(Icons.chat_bubble_outline,
-                    size: 20, color: Color(0xFF25D366)),
+                    size: 20, color: AppColors.oliveGreen),
                 const SizedBox(width: 10),
                 const Text(
                   'WhatsApp זמין',
                   style: TextStyle(
-                      fontSize: 16, color: Color(0xFF25D366),
+                      fontSize: 16,
+                      color: AppColors.oliveGreen,
                       fontWeight: FontWeight.w600),
                 ),
               ],
@@ -224,7 +225,7 @@ class ContactsScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 16)),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 50),
-                    backgroundColor: const Color(0xFF25D366),
+                    backgroundColor: AppColors.oliveGreen,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
