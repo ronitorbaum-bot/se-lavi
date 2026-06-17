@@ -315,6 +315,17 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 ),
                 child: const Text('שמירה'),
               ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 52),
+                ),
+                child: const Text(
+                  'ביטול',
+                  style: TextStyle(fontSize: 18, color: AppColors.textMedium),
+                ),
+              ),
             ],
           ),
         ),
