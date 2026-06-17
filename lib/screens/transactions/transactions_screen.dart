@@ -51,6 +51,61 @@ class _TransactionsScreenState extends State<TransactionsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadDemoData();
+  }
+
+  void _loadDemoData() {
+    final today = DateTime.now();
+    _records.addAll([
+      MoneyRecord(
+        id: 'demo_1',
+        type: 'income',
+        category: 'תקציב',
+        amount: 2000,
+        extraText: '★ לדוגמה',
+        createdAt: today.copyWith(hour: 8, minute: 0, second: 0),
+      ),
+      MoneyRecord(
+        id: 'demo_2',
+        type: 'expense',
+        category: 'כלבו',
+        amount: 42,
+        extraText: '★ לדוגמה',
+        createdAt: today.copyWith(hour: 9, minute: 30, second: 0),
+      ),
+      MoneyRecord(
+        id: 'demo_3',
+        type: 'expense',
+        category: 'חשמל',
+        amount: 180,
+        extraText: '★ לדוגמה',
+        createdAt: today.copyWith(hour: 10, minute: 15, second: 0),
+      ),
+      MoneyRecord(
+        id: 'demo_4',
+        type: 'expense',
+        category: 'כביסה',
+        weight: 3.5,
+        extraText: '★ לדוגמה',
+        createdAt: today.copyWith(hour: 11, minute: 0, second: 0),
+      ),
+      MoneyRecord(
+        id: 'demo_5',
+        type: 'expense',
+        category: 'נסיעות',
+        destination: 'טבריה',
+        extraText: '★ לדוגמה',
+        createdAt: today.copyWith(hour: 13, minute: 45, second: 0),
+      ),
+      MoneyRecord(
+        id: 'demo_6',
+        type: 'expense',
+        category: 'בריאות',
+        amount: 65,
+        extraText: '★ לדוגמה',
+        createdAt: today.copyWith(hour: 15, minute: 30, second: 0),
+      ),
+    ]);
   }
 
   @override
@@ -161,11 +216,11 @@ class _TransactionsScreenState extends State<TransactionsScreen>
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20)),
-        title: const Text('נרשם בהצלחה',
+        title: const Text('נרשם, תודה',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        content: const Text('הרישום נוסף לרשימה.',
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
+        content: const Text('הרישום נוסף לרשימה. אפשר להמשיך.',
+            textAlign: TextAlign.center, style: TextStyle(fontSize: 18, height: 1.5)),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           ElevatedButton(
@@ -175,8 +230,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
             ),
-            child:
-                const Text('הבנתי', style: TextStyle(fontSize: 20)),
+            child: const Text('הבנתי', style: TextStyle(fontSize: 20)),
           ),
           const SizedBox(height: 8),
         ],
@@ -421,13 +475,43 @@ class _TransactionsScreenState extends State<TransactionsScreen>
 
   // ─── טאב רישום ────────────────────────────────────────
 
+  Widget _buildDemoBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3CD),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFD966), width: 1.5),
+      ),
+      child: Row(
+        children: const [
+          Icon(Icons.star_outline, color: Color(0xFF856404), size: 20),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'גרסת הדגמה — הנתונים כאן הם לדוגמה בלבד',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF856404),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRegistrationTab() {
     final filtered = _filteredSortedRecords;
 
     return Column(
       children: [
+        _buildDemoBanner(),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Column(
             children: [
               LargeActionButton(
@@ -467,7 +551,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                         const SizedBox(height: 12),
                         Text(
                           _filterCategory == 'הכול'
-                              ? 'אין עדיין רישומים'
+                              ? 'כאן אפשר לראות מה שנרשם'
                               : 'אין רישומים בקטגוריה "$_filterCategory"',
                           style: Theme.of(context)
                               .textTheme
@@ -535,7 +619,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('סיכום לפי קטגוריות',
+              Text('סיכום פשוט לפי נושאים',
                   style: Theme.of(context).textTheme.titleLarge),
               TextButton.icon(
                 onPressed: () => setState(() =>

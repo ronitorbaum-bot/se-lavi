@@ -18,7 +18,7 @@ class HomeScreen extends StatelessWidget {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         content: const Text(
-          'בהמשך הכפתור הזה ישלח הודעה לאיש קשר שתבחרי מראש.\nכרגע זו רק הדגמה.',
+          'בהמשך הכפתור הזה ישלח הודעה לאיש קשר שתבחרי מראש.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, height: 1.6),
         ),
@@ -64,14 +64,48 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'שלום! מה תרצי לעשות היום?',
+              'מה תרצי לרשום היום?',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textMedium,
                   ),
               textAlign: TextAlign.center,
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // כרטיס ברכה / הסבר קצר
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF3E4),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.oliveGreen, width: 1.5),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'ברוכה הבאה לסה-לביא',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppColors.oliveGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'האפליקציה עוזרת לזכור דברים ולרשום הוצאות בקלות.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textMedium,
+                          height: 1.5,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
 
             // כרטיס "הדבר הבא"
             Container(
