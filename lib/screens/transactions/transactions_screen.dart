@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../models/money_record.dart';
 import '../../widgets/large_action_button.dart';
-import 'widgets/category_picker_sheet.dart';
-import 'widgets/expense_form_sheet.dart';
-import 'widgets/income_form_sheet.dart';
 
 // רשימת כל הקטגוריות הקבועות
 const List<String> _allCategories = [
@@ -29,7 +26,18 @@ class _CategorySummary {
 }
 
 class TransactionsScreen extends StatefulWidget {
-  const TransactionsScreen({super.key});
+  final List<MoneyRecord> records;
+  final VoidCallback onOpenExpense;
+  final VoidCallback onOpenIncome;
+  final void Function(String id) onDelete;
+
+  const TransactionsScreen({
+    super.key,
+    required this.records,
+    required this.onOpenExpense,
+    required this.onOpenIncome,
+    required this.onDelete,
+  });
 
   @override
   State<TransactionsScreen> createState() => _TransactionsScreenState();
@@ -37,75 +45,16 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen>
     with SingleTickerProviderStateMixin {
-  final List<MoneyRecord> _records = [];
   late final TabController _tabController;
 
-  // מיון וסינון
   String _sortBy = 'newest';
   String _filterCategory = 'הכול';
-
-  // סיכומים — הצג רק קטגוריות עם רישומים
   bool _showOnlyWithRecords = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadDemoData();
-  }
-
-  void _loadDemoData() {
-    final today = DateTime.now();
-    _records.addAll([
-      MoneyRecord(
-        id: 'demo_1',
-        type: 'income',
-        category: 'תקציב',
-        amount: 2000,
-        extraText: '★ לדוגמה',
-        createdAt: today.copyWith(hour: 8, minute: 0, second: 0),
-      ),
-      MoneyRecord(
-        id: 'demo_2',
-        type: 'expense',
-        category: 'כלבו',
-        amount: 42,
-        extraText: '★ לדוגמה',
-        createdAt: today.copyWith(hour: 9, minute: 30, second: 0),
-      ),
-      MoneyRecord(
-        id: 'demo_3',
-        type: 'expense',
-        category: 'חשמל',
-        amount: 180,
-        extraText: '★ לדוגמה',
-        createdAt: today.copyWith(hour: 10, minute: 15, second: 0),
-      ),
-      MoneyRecord(
-        id: 'demo_4',
-        type: 'expense',
-        category: 'כביסה',
-        weight: 3.5,
-        extraText: '★ לדוגמה',
-        createdAt: today.copyWith(hour: 11, minute: 0, second: 0),
-      ),
-      MoneyRecord(
-        id: 'demo_5',
-        type: 'expense',
-        category: 'נסיעות',
-        destination: 'טבריה',
-        extraText: '★ לדוגמה',
-        createdAt: today.copyWith(hour: 13, minute: 45, second: 0),
-      ),
-      MoneyRecord(
-        id: 'demo_6',
-        type: 'expense',
-        category: 'בריאות',
-        amount: 65,
-        extraText: '★ לדוגמה',
-        createdAt: today.copyWith(hour: 15, minute: 30, second: 0),
-      ),
-    ]);
   }
 
   @override
@@ -116,18 +65,18 @@ class _TransactionsScreenState extends State<TransactionsScreen>
 
   // ─── חישובים ───────────────────────────────────────────
 
-  double get _totalIncome => _records
+  double get _totalIncome => widget.records
       .where((r) => r.type == 'income' && r.amount != null)
       .fold(0.0, (sum, r) => sum + r.amount!);
 
-  double get _totalExpense => _records
+  double get _totalExpense => widget.records
       .where((r) => r.type == 'expense' && r.amount != null)
       .fold(0.0, (sum, r) => sum + r.amount!);
 
   List<MoneyRecord> get _filteredSortedRecords {
     var list = _filterCategory == 'הכול'
-        ? List<MoneyRecord>.from(_records)
-        : _records.where((r) => r.category == _filterCategory).toList();
+        ? List<MoneyRecord>.from(widget.records)
+        : widget.records.where((r) => r.category == _filterCategory).toList();
 
     switch (_sortBy) {
       case 'newest':
@@ -157,7 +106,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
   List<_CategorySummary> get _categorySummaries {
     final map = {for (final cat in _allCategories) cat: _CategorySummary(cat)};
 
-    for (final r in _records) {
+    for (final r in widget.records) {
       final s = map[r.category];
       if (s == null) continue;
       s.count++;
@@ -169,74 +118,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     return _showOnlyWithRecords ? all.where((s) => s.count > 0).toList() : all;
   }
 
-  // ─── פתיחת טפסים ───────────────────────────────────────
-
-  Future<void> _openExpenseFlow() async {
-    final category = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const CategoryPickerSheet(),
-    );
-
-    if (category == null || !mounted) return;
-
-    final record = await showModalBottomSheet<MoneyRecord>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ExpenseFormSheet(category: category),
-    );
-
-    if (record != null && mounted) {
-      setState(() => _records.insert(0, record));
-      _showSuccessDialog();
-    }
-  }
-
-  Future<void> _openIncomeForm() async {
-    final record = await showModalBottomSheet<MoneyRecord>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const IncomeFormSheet(),
-    );
-
-    if (record != null && mounted) {
-      setState(() => _records.insert(0, record));
-      _showSuccessDialog();
-    }
-  }
-
   // ─── דיאלוגים ─────────────────────────────────────────
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20)),
-        title: const Text('נרשם, תודה',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        content: const Text('הרישום נוסף לרשימה. אפשר להמשיך.',
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 18, height: 1.5)),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(160, 56),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            child: const Text('הבנתי', style: TextStyle(fontSize: 20)),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
 
   void _confirmDelete(String id) {
     showDialog(
@@ -262,8 +144,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
               const SizedBox(width: 16),
               ElevatedButton(
                 onPressed: () {
-                  setState(
-                      () => _records.removeWhere((r) => r.id == id));
+                  widget.onDelete(id);
                   Navigator.of(ctx).pop();
                 },
                 style: ElevatedButton.styleFrom(
@@ -377,8 +258,9 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(_formatDate(record.createdAt),
                         style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade500)),
+                            fontSize: 15,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500)),
                   ),
                 ],
               ),
@@ -518,14 +400,14 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                 label: 'רישום הוצאה',
                 icon: Icons.arrow_upward,
                 backgroundColor: AppColors.terracotta,
-                onPressed: _openExpenseFlow,
+                onPressed: widget.onOpenExpense,
               ),
               const SizedBox(height: 12),
               LargeActionButton(
                 label: 'רישום הכנסה',
                 icon: Icons.arrow_downward,
                 backgroundColor: AppColors.oliveGreen,
-                onPressed: _openIncomeForm,
+                onPressed: widget.onOpenIncome,
               ),
             ],
           ),
@@ -670,7 +552,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
   }
 
   void _openCategoryDetail(String category) {
-    final records = _records
+    final records = widget.records
         .where((r) => r.category == category)
         .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -910,8 +792,10 @@ class _CategoryDetailSheet extends StatelessWidget {
                 const Spacer(),
                 Text(
                   formatDate(r.createdAt),
-                  style: TextStyle(
-                      fontSize: 13, color: Colors.grey.shade500),
+                  style: const TextStyle(
+                      fontSize: 17,
+                      color: AppColors.textMedium,
+                      fontWeight: FontWeight.w600),
                 ),
               ],
             ),

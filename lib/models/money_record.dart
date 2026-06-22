@@ -24,6 +24,9 @@ class MoneyRecord {
   String get typeLabel => type == 'income' ? 'הכנסה' : 'הוצאה';
 
   String get summaryText {
+    if (category == 'כביסה' && weight != null && amount != null) {
+      return '${weight!.toStringAsFixed(1)} ק"ג | ₪${amount!.toStringAsFixed(2)}';
+    }
     if (amount != null) return '₪${amount!.toStringAsFixed(2)}';
     if (weight != null) return '${weight!.toStringAsFixed(1)} ק"ג';
     if (destination != null) return destination!;

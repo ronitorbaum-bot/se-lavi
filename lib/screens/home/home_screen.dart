@@ -1,17 +1,54 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../models/reminder_record.dart';
-import '../../widgets/large_action_button.dart';
 
 class HomeScreen extends StatelessWidget {
   final void Function(int) onTabChange;
   final List<ReminderRecord> reminders;
+  final Future<void> Function() onOpenExpenseForm;
+  final Future<void> Function() onOpenIncomeForm;
 
   const HomeScreen({
     super.key,
     required this.onTabChange,
     required this.reminders,
+    required this.onOpenExpenseForm,
+    required this.onOpenIncomeForm,
   });
+
+  // ─── סינון תזכורות להיום ─────────────────────────────
+
+  static String _weekdayName(int dartWeekday) {
+    const names = {
+      1: 'שני', 2: 'שלישי', 3: 'רביעי',
+      4: 'חמישי', 5: 'שישי', 6: 'שבת', 7: 'ראשון',
+    };
+    return names[dartWeekday] ?? '';
+  }
+
+  List<ReminderRecord> _todayReminders() {
+    final now = DateTime.now();
+    final todayName = _weekdayName(now.weekday);
+    return reminders.where((r) {
+      switch (r.repeat) {
+        case 'חד פעמי':
+          if (r.oneTimeDate == null) return false;
+          final d = r.oneTimeDate!;
+          return d.year == now.year && d.month == now.month && d.day == now.day;
+        case 'יומי':
+          return r.days.contains(todayName);
+        case 'שבועי':
+          return r.days.isNotEmpty && r.days.first == todayName;
+        case 'חודשי':
+          if (r.oneTimeDate != null) return r.oneTimeDate!.day == now.day;
+          return false;
+        default:
+          return false;
+      }
+    }).toList();
+  }
+
+  // ─── דיאלוג עזרה ─────────────────────────────────────
 
   void _showHelpDialog(BuildContext context) {
     showDialog(
@@ -46,9 +83,46 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // ─── כפתור קומפקטי ───────────────────────────────────
+
+  Widget _compactButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Expanded(
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          minimumSize: const Size(0, 60),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── אזור תזכורות ─────────────────────────────────────
+
   Widget _buildRemindersSection(BuildContext context) {
-    final visible = reminders.take(3).toList();
-    final hasMore = reminders.length > 3;
+    final visible = _todayReminders().take(3).toList();
+    final hasMore = _todayReminders().length > 3;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,10 +135,10 @@ class HomeScreen extends StatelessWidget {
               ),
         ),
         const SizedBox(height: 10),
-        if (reminders.isEmpty)
+        if (visible.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -73,7 +147,7 @@ class HomeScreen extends StatelessWidget {
             child: Row(
               children: [
                 const Icon(Icons.check_circle_outline,
-                    size: 32, color: AppColors.oliveGreen),
+                    size: 28, color: AppColors.oliveGreen),
                 const SizedBox(width: 12),
                 Text(
                   'אין תזכורות להיום',
@@ -132,17 +206,13 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
-                    color: r.isDone
-                        ? Colors.grey.shade400
-                        : AppColors.textDark,
-                    decoration:
-                        r.isDone ? TextDecoration.lineThrough : null,
+                    color: r.isDone ? Colors.grey.shade400 : AppColors.textDark,
+                    decoration: r.isDone ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 if (r.time != null || r.repeat.isNotEmpty)
                   Text(
-                    [if (r.time != null) r.time!, r.repeatLabel]
-                        .join('  •  '),
+                    [if (r.time != null) r.time!, r.repeatLabel].join('  •  '),
                     style: const TextStyle(
                         fontSize: 14, color: AppColors.textMedium),
                   ),
@@ -154,6 +224,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // ─── build ────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,7 +236,6 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // לוגו
               Image.asset(
                 'assets/images/logo.png',
                 width: 200,
@@ -174,76 +245,56 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // אזור תזכורות להיום
               _buildRemindersSection(context),
 
               const SizedBox(height: 20),
 
-              // שורה: הוצאה + הכנסה — שניים בשורה במסך רחב, אחד מתחת לשני בנייד
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 480;
-                  if (isNarrow) {
-                    return Column(
-                      children: [
-                        LargeActionButton(
-                          label: 'רישום הוצאה',
-                          icon: Icons.arrow_upward,
-                          backgroundColor: AppColors.terracotta,
-                          onPressed: () => onTabChange(1),
-                        ),
-                        const SizedBox(height: 12),
-                        LargeActionButton(
-                          label: 'רישום הכנסה',
-                          icon: Icons.arrow_downward,
-                          backgroundColor: AppColors.oliveGreen,
-                          onPressed: () => onTabChange(1),
-                        ),
-                      ],
-                    );
-                  }
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: LargeActionButton(
-                          label: 'רישום הוצאה',
-                          icon: Icons.arrow_upward,
-                          backgroundColor: AppColors.terracotta,
-                          onPressed: () => onTabChange(1),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: LargeActionButton(
-                          label: 'רישום הכנסה',
-                          icon: Icons.arrow_downward,
-                          backgroundColor: AppColors.oliveGreen,
-                          onPressed: () => onTabChange(1),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+              // שלושה כפתורים קומפקטיים בשורה
+              Row(
+                children: [
+                  _compactButton(
+                    label: 'רישום\nהוצאה',
+                    icon: Icons.arrow_upward,
+                    color: AppColors.terracotta,
+                    onPressed: onOpenExpenseForm,
+                  ),
+                  const SizedBox(width: 8),
+                  _compactButton(
+                    label: 'רישום\nהכנסה',
+                    icon: Icons.arrow_downward,
+                    color: AppColors.oliveGreen,
+                    onPressed: onOpenIncomeForm,
+                  ),
+                  const SizedBox(width: 8),
+                  _compactButton(
+                    label: 'הוספת\nתזכורת',
+                    icon: Icons.notifications_outlined,
+                    color: AppColors.sunrise,
+                    onPressed: () => onTabChange(2),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
 
-              // הוספת תזכורת
-              LargeActionButton(
-                label: 'הוספת תזכורת',
-                icon: Icons.notifications_outlined,
-                backgroundColor: AppColors.sunrise,
-                onPressed: () => onTabChange(2),
-              ),
-
-              const SizedBox(height: 12),
-
-              // צריכה עזרה
-              LargeActionButton(
-                label: 'צריכה עזרה',
-                icon: Icons.favorite,
-                backgroundColor: AppColors.terracotta,
-                onPressed: () => _showHelpDialog(context),
+              // כפתור עזרה — גדול ובולט
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showHelpDialog(context),
+                  icon: const Icon(Icons.favorite, size: 24),
+                  label: const Text(
+                    'צריכה עזרה',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.terracotta,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 72),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
               ),
 
               const SizedBox(height: 16),

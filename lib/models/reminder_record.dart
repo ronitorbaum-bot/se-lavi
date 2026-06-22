@@ -5,10 +5,11 @@ const List<String> kAllDays = [
 class ReminderRecord {
   final String id;
   final String title;
-  final String? time;   // פורמט "HH:mm"
-  final String repeat;  // חד פעמי | יומי | שבועי | חודשי
-  final List<String> days; // יומי: רשימה; שבועי: אלמנט יחיד
+  final String? time;
+  final String repeat;
+  final List<String> days;
   final String? note;
+  final DateTime? oneTimeDate;
   bool isDone;
 
   ReminderRecord({
@@ -18,6 +19,7 @@ class ReminderRecord {
     required this.repeat,
     List<String>? days,
     this.note,
+    this.oneTimeDate,
     this.isDone = false,
   }) : days = days ?? [];
 
@@ -29,6 +31,12 @@ class ReminderRecord {
         return days.join(', ');
       case 'שבועי':
         return days.isNotEmpty ? 'כל ${days.first}' : 'שבועי';
+      case 'חד פעמי':
+        if (oneTimeDate != null) {
+          final d = oneTimeDate!;
+          return '${d.day}/${d.month}/${d.year}';
+        }
+        return 'חד פעמי';
       default:
         return repeat;
     }

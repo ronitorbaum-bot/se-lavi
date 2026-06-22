@@ -410,11 +410,9 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
 
   String _repeat = 'חד פעמי';
   TimeOfDay? _selectedTime;
+  DateTime? _oneTimeDate;
 
-  // יומי: ריק כברירת מחדל — המשתמשת בוחרת
   final List<String> _dailyDays = [];
-
-  // שבועי: יום יחיד
   String? _weeklyDay;
 
   @override
@@ -443,9 +441,28 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
     if (picked != null) setState(() => _selectedTime = picked);
   }
 
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _oneTimeDate ?? now,
+      firstDate: now.subtract(const Duration(days: 1)),
+      lastDate: DateTime(now.year + 2),
+      builder: (ctx, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: child!,
+      ),
+    );
+    if (picked != null) setState(() => _oneTimeDate = picked);
+  }
+
   void _onSave() {
     if (_titleController.text.trim().isEmpty) {
       _showError('צריך לכתוב מה להזכיר');
+      return;
+    }
+    if (_repeat == 'חד פעמי' && _oneTimeDate == null) {
+      _showError('צריך לבחור תאריך');
       return;
     }
     if (_repeat == 'יומי' && _dailyDays.isEmpty) {
@@ -471,6 +488,7 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
         time: _selectedTime == null ? null : _timeDisplay,
         repeat: _repeat,
         days: days,
+        oneTimeDate: _oneTimeDate,
         note: _noteController.text.trim().isEmpty
             ? null
             : _noteController.text.trim(),
@@ -556,6 +574,14 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
               const SizedBox(height: 12),
               _buildRepeatChips(),
 
+              // תאריך לחד פעמי
+              if (_repeat == 'חד פעמי') ...[
+                const SizedBox(height: 22),
+                _label('תאריך', required: true),
+                const SizedBox(height: 10),
+                _buildDatePicker(),
+              ],
+
               // ימים לפי סוג חזרה
               if (_repeat == 'יומי') ...[
                 const SizedBox(height: 22),
@@ -611,6 +637,52 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // ─── בחירת תאריך ─────────────────────────────────────
+
+  Widget _buildDatePicker() {
+    final picked = _oneTimeDate != null;
+    final label = picked
+        ? '${_oneTimeDate!.day}/${_oneTimeDate!.month}/${_oneTimeDate!.year}'
+        : 'לחצי לבחירת תאריך';
+    return GestureDetector(
+      onTap: _pickDate,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: picked ? AppColors.oliveGreen : Colors.grey.shade300,
+            width: picked ? 2 : 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today,
+                color: picked ? AppColors.oliveGreen : Colors.grey.shade400,
+                size: 22),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 19,
+                color: picked ? AppColors.textDark : AppColors.textMedium,
+                fontWeight: picked ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            const Spacer(),
+            if (picked)
+              GestureDetector(
+                onTap: () => setState(() => _oneTimeDate = null),
+                child: const Icon(Icons.close,
+                    size: 20, color: AppColors.textMedium),
+              ),
+          ],
         ),
       ),
     );

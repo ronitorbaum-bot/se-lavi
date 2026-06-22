@@ -16,6 +16,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
   final _noteController = TextEditingController();
   final _monthController = TextEditingController();
   final _weightController = TextEditingController();
+  final _pricePerKgController = TextEditingController(text: '5');
   final _destinationController = TextEditingController();
   final _medicineController = TextEditingController();
   final _doctorController = TextEditingController();
@@ -23,11 +24,29 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
   String? _healthAction;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.category == 'כביסה') {
+      _weightController.addListener(_onLaundryChange);
+      _pricePerKgController.addListener(_onLaundryChange);
+    }
+  }
+
+  void _onLaundryChange() => setState(() {});
+
+  double get _laundryTotal {
+    final w = double.tryParse(_weightController.text.trim()) ?? 0;
+    final p = double.tryParse(_pricePerKgController.text.trim()) ?? 0;
+    return w * p;
+  }
+
+  @override
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
     _monthController.dispose();
     _weightController.dispose();
+    _pricePerKgController.dispose();
     _destinationController.dispose();
     _medicineController.dispose();
     _doctorController.dispose();
@@ -79,12 +98,17 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     }
 
     final now = DateTime.now();
+    final weight = double.tryParse(_weightController.text.trim());
+    final computedAmount = widget.category == 'כביסה' && weight != null
+        ? weight * (double.tryParse(_pricePerKgController.text.trim()) ?? 5)
+        : double.tryParse(_amountController.text.trim());
+
     final record = MoneyRecord(
       id: now.millisecondsSinceEpoch.toString(),
       type: 'expense',
       category: widget.category,
-      amount: double.tryParse(_amountController.text.trim()),
-      weight: double.tryParse(_weightController.text.trim()),
+      amount: computedAmount,
+      weight: weight,
       destination: _destinationController.text.trim().isEmpty
           ? null
           : _destinationController.text.trim(),
@@ -125,6 +149,8 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
           AppTextField(label: 'הערה', controller: _noteController),
         ]);
       case 'כביסה':
+        final hasValues = _weightController.text.trim().isNotEmpty &&
+            _pricePerKgController.text.trim().isNotEmpty;
         return _col([
           AppTextField(
               label: 'משקל (ק"ג)',
@@ -133,10 +159,36 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
               hint: '5',
               keyboardType: TextInputType.number),
           AppTextField(
-              label: 'סכום',
-              controller: _amountController,
-              hint: '0.00',
+              label: 'מחיר לק"ג (ש"ח)',
+              controller: _pricePerKgController,
+              isRequired: true,
+              hint: '5',
               keyboardType: TextInputType.number),
+          if (hasValues)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF3E4),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('סכום לתשלום:',
+                      style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textDark)),
+                  Text(
+                    '₪${_laundryTotal.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.oliveGreen),
+                  ),
+                ],
+              ),
+            ),
           AppTextField(label: 'הערה', controller: _noteController),
         ]);
       case 'נסיעות':
